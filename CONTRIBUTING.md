@@ -1,46 +1,72 @@
-## Contributing
+# Contributing to agent-egress-firewall
 
-We welcome contributions of all kinds to improve this project! Here's how you can get involved:
+We welcome contributions of all kinds to improve `agent-egress-firewall` (`aegf`). Follow these guidelines to get started.
 
-1. **Fork the Repository**: Start by forking the repository to your GitHub account.
+---
 
-2. **Clone Your Fork**: Clone the forked repository to your local machine:
+## Getting Started
 
+1. **Fork the Repository**: Fork the repository to your personal GitHub account.
+2. **Clone Your Fork**:
    ```bash
-   git clone <repo_url>
-   cd repo_dir
+   git clone https://github.com/ranajahanzaib/agent-egress-firewall.git
+   cd agent-egress-firewall
+   ```
+3. **Set Up the Environment**:
+   - Ensure Go 1.24+ and Rust 1.85+ with `cargo` are installed.
+   - Install `protobuf-compiler` (`protoc`).
+   - Download local test model weights:
+     ```bash
+     make models
+     ```
+
+---
+
+## Development Workflow
+
+1. **Create a Topic Branch**:
+   ```bash
+   git checkout -b feature/my-feature-name
    ```
 
-3. **Create a Branch**: Create a new branch for your feature or bug fix:
-
+2. **Build and Test Locally**:
    ```bash
-   git checkout -b feature-name
+   make build      # Compiles bin/aegf and bin/aegf-inference
+   make test       # Runs Go and Rust unit and integration suites
+   make lint       # Runs go vet and cargo clippy
+   make fmt        # Formats Go and Rust codebases
    ```
 
-4. **Make Changes**: Make your changes to the codebase. Be sure to follow existing code style and conventions.
-
-5. **Commit Changes**: Commit your changes with a clear and descriptive message:
-
+3. **Verify End-to-End**:
    ```bash
-   git commit -m "Add detailed description of the changes"
+   ./scripts/demo.sh
    ```
 
-6. **Push Changes**: Push your changes to your fork:
-
+4. **Commit Your Changes**:
+   Write clear, descriptive commit messages adhering to standard conventions:
    ```bash
-   git push origin feature-name
+   git commit -m "feat(policy): add support for cidr network ranges in exceptions"
    ```
 
-7. **Submit a Pull Request**: Open a pull request from your branch to the main repository's branch. Include a detailed description of your changes and the problem they solve.
+5. **Submit a Pull Request**:
+   - Push your branch to GitHub:
+     ```bash
+     git push origin feature/my-feature-name
+     ```
+   - Open a Pull Request targeting `main`.
+   - Provide a clear summary of changes, problem statement, and test coverage.
 
-8. **Review and Feedback**: Participate in the review process. Make any requested changes, and your contribution will be merged!
+---
 
-### Guidelines
+## Code Style & Testing Standards
 
-- Ensure your code follows the existing style and conventions.
-- Include tests for any new functionality or bug fixes.
-- Write clear, concise commit messages and pull request descriptions.
+- **Go**: Code must be formatted with `gofmt` and pass `go vet ./...` without warnings.
+- **Rust**: Code must be formatted with `cargo fmt` and pass `cargo clippy -- -D warnings`.
+- **Zero Secrets**: Never commit live credentials, API keys, private keys, or personal identifiers. Use synthetic test vectors (`sk-proj-...` dummy tokens, `0000...` IDs).
+- **Security Invariant**: Go owns enforcement; Rust owns detection. Rust must never make routing or forwarding decisions.
 
-### Issues
+---
 
-Feel free to report bugs or suggest enhancements by creating an issue. Be sure to include detailed information about the problem and, if possible, steps to reproduce it.
+## Community Guidelines
+
+Please note that this project adheres to our [Code of Conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold these standards.
