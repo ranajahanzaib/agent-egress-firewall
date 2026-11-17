@@ -1,0 +1,26 @@
+[package]
+name = "aegf-inference"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tonic = "0.14.9"
+prost = "0.14.6"
+tokio = { version = "1.54.1", features = ["full"] }
+ort = "2.0.0-rc.15"
+tokenizers = "0.23.2"
+ndarray = "0.17.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+regex = "1.13"
+anyhow = "1.0"
+thiserror = "2.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4.5", features = ["derive", "env"] }
+tonic-prost = "0.14.9"
+
+[build-dependencies]
+tonic-build = "0.14.9"
+prost-build = "0.14.6"
+tonic-prost-build = "0.14.9"
