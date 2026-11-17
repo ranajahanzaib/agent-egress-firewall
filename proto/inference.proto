@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package inference.v1;
+
+option go_package = "github.com/ranajahanzaib/agent-egress-firewall/internal/inspection/pb;pb";
+
+service InferenceService {
+  rpc Scan(ScanRequest) returns (ScanResponse);
+  rpc CheckHealth(HealthRequest) returns (HealthResponse);
+  rpc GetModelStatus(ModelStatusRequest) returns (ModelStatusResponse);
+}
+
+message ScanRequest {
+  string request_id = 1;
+  repeated ScanField fields = 2;
+  repeated EntityDefinition entities = 3;
+  repeated PatternDefinition patterns = 4;
+  ScanOptions options = 5;
+}
+
+message ScanField {
+  string field_id = 1;
+  string text = 2;
+  string context = 3;
+}
+
+message EntityDefinition {
+  string name = 1;
+  string description = 2;
+  double confidence_threshold = 3;
+  bool enabled = 4;
+}
+
+message PatternDefinition {
+  string name = 1;
+  string category = 2;
+  string regex = 3;
+  double confidence = 4;
+  bool enabled = 5;
+}
+
+message ScanOptions {
+  bool enable_ml = 1;
+  bool enable_patterns = 2;
+  double default_min_confidence = 3;
+  uint32 max_spans_per_field = 4;
+  string language = 5;
+}
+
+message Detection {
+  string field_id = 1;
+  string category = 2;
+  uint32 start = 3;
+  uint32 end = 4;
+  string text = 5;
+  double confidence = 6;
+  string source = 7;
+  string detector_id = 8;
+  string label = 9;
+}
+
+message ScanResponse {
+  string request_id = 1;
+  repeated Detection detections = 2;
+  string model_id = 3;
+  uint64 inference_duration_ms = 4;
+  bool success = 5;
+  string error_message = 6;
+}
+
+message HealthRequest {}
+
+enum ServingStatus {
+  SERVING_STATUS_UNKNOWN = 0;
+  SERVING_STATUS_SERVING = 1;
+  SERVING_STATUS_NOT_SERVING = 2;
+}
+
+message HealthResponse {
+  ServingStatus status = 1;
+  string version = 2;
+}
+
+message ModelStatusRequest {}
+
+message ModelStatusResponse {
+  bool model_loaded = 1;
+  string model_name = 2;
+  string model_path = 3;
+  string device = 4;
+  uint32 max_sequence_length = 5;
+  repeated string default_entities = 6;
+}
