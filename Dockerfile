@@ -11,6 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     pkg-config \
+    libssl-dev \
     protobuf-compiler \
     libprotobuf-dev \
     cmake \
@@ -56,6 +57,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     libstdc++6 \
+    libssl3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Run as dedicated non-root user
