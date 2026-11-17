@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Go Version](https://img.shields.io/badge/Go-1.24%2B-00ADD8?logo=go)](https://go.dev/)
-[![Rust Version](https://img.shields.io/badge/Rust-1.85%2B-orange?logo=rust)](https://www.rust-lang.org/)
+[![Rust Version](https://img.shields.io/badge/Rust-1.92%2B-orange?logo=rust)](https://www.rust-lang.org/)
 [![ONNX Runtime](https://img.shields.io/badge/ONNX_Runtime-1.20%2B-blue?logo=onnx)](https://onnxruntime.ai/)
 
 `agent-egress-firewall` (`aegf`) is a self-hosted security proxy that inspects outbound HTTP requests originating from autonomous AI agents, backend microservices, and applications. It identifies confidential data, API credentials, and PII locally using zero-shot GLiNER ONNX models and deterministic pattern detectors, enforcing security policies to **allow**, **redact**, or **block** requests before they leave your infrastructure.
@@ -214,7 +214,7 @@ BY LANGUAGE:
 ### Prerequisites
 
 - Go 1.24+
-- Rust 1.85+ and Cargo
+- Rust 1.92+ and Cargo
 - Python 3 (for downloading model weights)
 
 ### 1. Build Binaries

@@ -3,7 +3,7 @@
 # -------------------------------------------------------------
 # Stage 1: Rust Inference Engine Builder
 # -------------------------------------------------------------
-FROM rust:1.85-bookworm AS rust-builder
+FROM rust:bookworm AS rust-builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     protobuf-compiler \
