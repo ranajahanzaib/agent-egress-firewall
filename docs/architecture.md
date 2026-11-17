@@ -4,28 +4,28 @@
 
 ```mermaid
 graph TD
-    Client[Application / AI Agent] -->|Outbound HTTP Request| Proxy[Go Gateway Proxy]
-    Proxy -->|Match Route| Router[Routing Engine]
-    Router -->|Extract JSON/Form/Text| Extractor[Content Extractor]
-    Extractor -->|gRPC ScanRequest| RustEngine[Rust Detection Engine]
+    Client["Application / AI Agent"] -->|Outbound HTTP Request| Proxy["Go Gateway Proxy"]
+    Proxy -->|Match Route| Router["Routing Engine"]
+    Router -->|Extract JSON/Form/Text| Extractor["Content Extractor"]
+    Extractor -->|gRPC ScanRequest| RustEngine["Rust Detection Engine"]
 
     subgraph Rust Detection Engine
-        RustEngine --> Tokenizer[Tokenizer / Word Segmenter]
-        Tokenizer --> ONNX[ONNX Runtime / GLiNER]
-        RustEngine --> Patterns[Deterministic Regex & Luhn Detectors]
-        ONNX --> Resolver[Conflict & Span Resolver]
+        RustEngine --> Tokenizer["Tokenizer / Word Segmenter"]
+        Tokenizer --> ONNX["ONNX Runtime / GLiNER"]
+        RustEngine --> Patterns["Deterministic Regex & Luhn Detectors"]
+        ONNX --> Resolver["Conflict & Span Resolver"]
         Patterns --> Resolver
     end
 
     Resolver -->|gRPC ScanResponse| Proxy
-    Proxy -->|Evaluate Findings| Policy[Go Policy Engine]
+    Proxy -->|Evaluate Findings| Policy["Go Policy Engine"]
 
-    Policy -->|Decision: ALLOW| Upstream[Upstream Destination API]
-    Policy -->|Decision: BLOCK| Reject[403 Forbidden Response]
-    Policy -->|Decision: REDACT| Vault[SQLite Encrypted Vault (AES-GCM)]
+    Policy -->|Decision: ALLOW| Upstream["Upstream Destination API"]
+    Policy -->|Decision: BLOCK| Reject["403 Forbidden Response"]
+    Policy -->|Decision: REDACT| Vault["SQLite Encrypted Vault (AES-GCM)"]
     Vault -->|Mutated Payload| Upstream
 
-    Proxy -->|Audit Event| AuditDB[(SQLite Audit Store)]
+    Proxy -->|Audit Event| AuditDB[("SQLite Audit Store")]
     Upstream -->|Streaming SSE / Chunks| Client
 ```
 

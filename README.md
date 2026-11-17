@@ -27,26 +27,26 @@ Autonomous AI agents and LLM applications make extensive external API calls. Wit
 
 ```mermaid
 graph TD
-    Client[Application / AI Agent] -->|Outbound HTTP Request| Proxy[Go Gateway Proxy :8080]
-    Proxy -->|Route Match & Size Limits| Extractor[Content Extractor]
-    Extractor -->|gRPC ScanRequest| RustEngine[Rust Detection Engine :50051]
+    Client["Application / AI Agent"] -->|Outbound HTTP Request| Proxy["Go Gateway Proxy :8080"]
+    Proxy -->|Route Match & Size Limits| Extractor["Content Extractor"]
+    Extractor -->|gRPC ScanRequest| RustEngine["Rust Detection Engine :50051"]
 
     subgraph Rust Detection Engine
-        RustEngine --> GLiNER[GLiNER ONNX Model]
-        RustEngine --> Patterns[Regex & Luhn Detectors]
-        GLiNER --> Resolver[Conflict & Span Resolver]
+        RustEngine --> GLiNER["GLiNER ONNX Model"]
+        RustEngine --> Patterns["Regex & Luhn Detectors"]
+        GLiNER --> Resolver["Conflict & Span Resolver"]
         Patterns --> Resolver
     end
 
     Resolver -->|Normalized Findings| Proxy
-    Proxy -->|Evaluate Policy| PolicyEngine[Go Policy Engine]
+    Proxy -->|Evaluate Policy| PolicyEngine["Go Policy Engine"]
 
-    PolicyEngine -->|ALLOW| Upstream[External API / OpenAI / Anthropic]
-    PolicyEngine -->|BLOCK| Reject[403 Forbidden Response]
-    PolicyEngine -->|REDACT| Vault[Encrypted Vault (AES-256-GCM)]
+    PolicyEngine -->|ALLOW| Upstream["External API / OpenAI / Anthropic"]
+    PolicyEngine -->|BLOCK| Reject["403 Forbidden Response"]
+    PolicyEngine -->|REDACT| Vault["Encrypted Vault (AES-256-GCM)"]
     Vault -->|Mutated Request| Upstream
 
-    Proxy -->|Audit Log| AuditDB[(SQLite Audit Store)]
+    Proxy -->|Audit Log| AuditDB[("SQLite Audit Store")]
     Upstream -->|Streaming SSE / Chunks| Client
 ```
 
