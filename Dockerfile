@@ -23,6 +23,8 @@ RUN cargo build --release
 # -------------------------------------------------------------
 FROM golang:1.24-bookworm AS go-builder
 
+ENV GOTOOLCHAIN=auto
+
 WORKDIR /build
 COPY go.mod go.sum ./
 RUN go mod download
