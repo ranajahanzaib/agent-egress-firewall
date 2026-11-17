@@ -1,0 +1,62 @@
+# Dynamic Detection Taxonomy and Pattern Configurations
+
+entities:
+  - name: PERSON
+    description: "Names of individual persons"
+    enabled: true
+    confidence_threshold: 0.60
+
+  - name: EMAIL
+    description: "Email addresses"
+    enabled: true
+    confidence_threshold: 0.55
+
+  - name: PHONE
+    description: "Telephone and mobile phone numbers"
+    enabled: true
+    confidence_threshold: 0.65
+
+  - name: API_KEY
+    description: "API keys, bearer credentials, and access tokens"
+    enabled: true
+    confidence_threshold: 0.70
+
+  - name: ACCOUNT_NUMBER
+    description: "Customer financial and banking identifiers"
+    enabled: true
+    confidence_threshold: 0.75
+
+  - name: INTERNAL_PROJECT
+    description: "Confidential internal project names"
+    enabled: true
+    confidence_threshold: 0.60
+
+  - name: MEDICAL_IDENTIFIER
+    description: "Healthcare records, patient IDs, and medical numbers"
+    enabled: true
+    confidence_threshold: 0.75
+
+patterns:
+  - name: INTERNAL_ACCOUNT_NUMBER
+    category: ACCOUNT_NUMBER
+    regex: '\bACCT-[A-Z0-9]{8}\b'
+    confidence: 1.0
+    enabled: true
+
+  - name: INTERNAL_PROJECT_TOKEN
+    category: INTERNAL_PROJECT
+    regex: '\bproject-[a-z0-9_-]{6,}\b'
+    confidence: 0.95
+    enabled: true
+
+  - name: INTERNAL_SECRET_KEY
+    category: INTERNAL_SECRET
+    regex: '\bsec_[a-f0-9]{32}\b'
+    confidence: 1.0
+    enabled: true
+
+  - name: INTERNAL_BUILD_ID
+    category: INTERNAL_BUILD_ID
+    regex: '\bBUILD-[0-9]{8}-[a-f0-9]{8}\b'
+    confidence: 1.0
+    enabled: true

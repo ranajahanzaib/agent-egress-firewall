@@ -1,0 +1,80 @@
+# Docker Deployment Configuration
+
+server:
+  listen: "0.0.0.0:8080"
+  read_timeout: 30s
+  write_timeout: 60s
+  idle_timeout: 90s
+  shutdown_timeout: 15s
+  max_body_size_bytes: 10485760
+  max_concurrency: 500
+  inference_timeout: 5s
+
+inference:
+  address: "inference:50051"
+  timeout: 5s
+  enable_ml: true
+  enable_patterns: true
+  min_confidence: 0.60
+  max_spans_per_field: 100
+
+vault:
+  enabled: true
+  db_path: "/app/data/vault.db"
+  retention: "30d"
+
+audit:
+  enabled: true
+  db_path: "/app/data/audit.db"
+  retention: "90d"
+
+routes:
+  - id: openai
+    match:
+      path_prefix: /openai
+    upstream: https://api.openai.com
+    strip_prefix: true
+    policy: strict-ai-egress
+
+  - id: anthropic
+    match:
+      path_prefix: /anthropic
+    upstream: https://api.anthropic.com
+    strip_prefix: true
+    policy: strict-ai-egress
+
+policies:
+  - name: strict-ai-egress
+    default_action: allow
+    minimum_confidence: 0.65
+    on_detection:
+      PERSON: redact
+      EMAIL: redact
+      PHONE: redact
+      API_KEY: block
+      PRIVATE_KEY: block
+      ACCOUNT_NUMBER: redact
+      INTERNAL_SECRET: block
+      INTERNAL_PROJECT: redact
+    failure_behavior:
+      inference_unavailable: block
+      inference_timeout: block
+      malformed_payload: block
+
+entities:
+  - name: PERSON
+    enabled: true
+    confidence_threshold: 0.60
+  - name: EMAIL
+    enabled: true
+    confidence_threshold: 0.55
+  - name: API_KEY
+    enabled: true
+    confidence_threshold: 0.70
+
+patterns:
+  - name: INTERNAL_ACCOUNT_NUMBER
+    category: ACCOUNT_NUMBER
+    regex: '\bACCT-[A-Z0-9]{8}\b'
+    confidence: 1.0
+    enabled: true

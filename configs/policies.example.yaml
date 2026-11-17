@@ -1,0 +1,57 @@
+# Detailed Policy Definitions for Agent Egress Firewall
+
+policies:
+  - name: strict-ai-egress
+    default_action: allow
+    minimum_confidence: 0.65
+    on_detection:
+      PERSON: redact
+      EMAIL: redact
+      PHONE: redact
+      API_KEY: block
+      PRIVATE_KEY: block
+      ACCOUNT_NUMBER: redact
+      INTERNAL_SECRET: block
+      INTERNAL_PROJECT: redact
+      NETWORK_IDENTIFIER: allow
+
+    destinations:
+      - "*.openai.com"
+      - "*.anthropic.com"
+
+    exceptions:
+      - destination: "*.openai.com"
+        allow:
+          - NETWORK_IDENTIFIER
+
+    failure_behavior:
+      inference_unavailable: block
+      inference_timeout: block
+      malformed_payload: block
+      unsupported_content: block
+      oversized_payload: block
+
+  - name: internal-api-policy
+    default_action: allow
+    minimum_confidence: 0.70
+    on_detection:
+      API_KEY: block
+      PRIVATE_KEY: block
+      INTERNAL_SECRET: block
+    failure_behavior:
+      inference_unavailable: block
+      inference_timeout: block
+      malformed_payload: block
+      unsupported_content: allow
+      oversized_payload: block
+
+  - name: audit-only-policy
+    default_action: allow
+    minimum_confidence: 0.50
+    on_detection:
+      PERSON: allow
+      EMAIL: allow
+      API_KEY: allow
+    failure_behavior:
+      inference_unavailable: allow
+      inference_timeout: allow
