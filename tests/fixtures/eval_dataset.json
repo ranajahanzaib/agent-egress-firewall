@@ -1,0 +1,87 @@
+[
+  {
+    "id": "eval-01",
+    "language": "en",
+    "text": "Please reach out to John Smith at john.smith@company.com regarding project-phoenix-core.",
+    "expected": [
+      { "category": "PERSON", "text": "John Smith" },
+      { "category": "EMAIL", "text": "john.smith@company.com" },
+      { "category": "INTERNAL_PROJECT", "text": "project-phoenix-core" }
+    ]
+  },
+  {
+    "id": "eval-02",
+    "language": "en",
+    "text": "Customer account ACCT-88990011 has been authorized with token sk-proj-1234567890abcdef1234567890.",
+    "expected": [
+      { "category": "ACCOUNT_NUMBER", "text": "ACCT-88990011" },
+      { "category": "API_KEY", "text": "sk-proj-1234567890abcdef1234567890" }
+    ]
+  },
+  {
+    "id": "eval-03",
+    "language": "es",
+    "text": "El cliente Carlos Rodríguez solicitó soporte técnico al correo carlos.rodriguez@empresa.es.",
+    "expected": [
+      { "category": "PERSON", "text": "Carlos Rodríguez" },
+      { "category": "EMAIL", "text": "carlos.rodriguez@empresa.es" }
+    ]
+  },
+  {
+    "id": "eval-04",
+    "language": "de",
+    "text": "Bitte senden Sie die Rechnung an Hans Müller unter hans.mueller@firma.de.",
+    "expected": [
+      { "category": "PERSON", "text": "Hans Müller" },
+      { "category": "EMAIL", "text": "hans.mueller@firma.de" }
+    ]
+  },
+  {
+    "id": "eval-05",
+    "language": "fr",
+    "text": "Veuillez contacter Jean Dupont à l'adresse jean.dupont@entreprise.fr pour validation.",
+    "expected": [
+      { "category": "PERSON", "text": "Jean Dupont" },
+      { "category": "EMAIL", "text": "jean.dupont@entreprise.fr" }
+    ]
+  },
+  {
+    "id": "eval-06",
+    "language": "ar",
+    "text": "يرجى مراسلة أحمد محمود على البريد ahmed.mahmoud@domain.com مباشرة.",
+    "expected": [
+      { "category": "PERSON", "text": "أحمد محمود" },
+      { "category": "EMAIL", "text": "ahmed.mahmoud@domain.com" }
+    ]
+  },
+  {
+    "id": "eval-07",
+    "language": "en",
+    "text": "The primary office telephone number is +1-555-123-4567 for inquiries.",
+    "expected": [{ "category": "PHONE", "text": "+1-555-123-4567" }]
+  },
+  {
+    "id": "eval-08",
+    "language": "en",
+    "text": "What are the common design patterns in Go and Rust for concurrent network proxies?",
+    "expected": []
+  },
+  {
+    "id": "eval-09",
+    "language": "en",
+    "text": "The server IP address is 192.168.1.100 and it connects to AWS key AKIAIOSFODNN7EXAMPLE.",
+    "expected": [
+      { "category": "NETWORK_IDENTIFIER", "text": "192.168.1.100" },
+      { "category": "API_KEY", "text": "AKIAIOSFODNN7EXAMPLE" }
+    ]
+  },
+  {
+    "id": "eval-10",
+    "language": "en",
+    "text": "Emergency contact: Dr. Alice Johnson at alice.j@hospital.org regarding patient record.",
+    "expected": [
+      { "category": "PERSON", "text": "Alice Johnson" },
+      { "category": "EMAIL", "text": "alice.j@hospital.org" }
+    ]
+  }
+]

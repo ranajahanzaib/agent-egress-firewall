@@ -1,0 +1,20 @@
+{
+  "records": [
+    {
+      "language": "es",
+      "contact": "Por favor contactar a Carlos Rodríguez al correo carlos.rodriguez@empresa.es sobre el contrato."
+    },
+    {
+      "language": "de",
+      "contact": "Bitte senden Sie die Rechnung an Hans Müller unter hans.mueller@firma.de."
+    },
+    {
+      "language": "fr",
+      "contact": "Veuillez contacter Jean Dupont à l'adresse jean.dupont@entreprise.fr pour validation."
+    },
+    {
+      "language": "ar",
+      "contact": "يرجى التواصل مع أحمد محمود عبر البريد الإلكتروني ahmed.mahmoud@domain.com للمتابعة."
+    }
+  ]
+}

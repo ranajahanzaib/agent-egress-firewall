@@ -1,0 +1,8 @@
+{
+  "build_info": {
+    "target": "production-release",
+    "internal_build_id": "BUILD-20261117-a1b2c3d4",
+    "project": "project-hyperion-quantum",
+    "message": "Do not leak internal build identifier to third party cloud."
+  }
+}

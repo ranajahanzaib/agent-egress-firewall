@@ -1,0 +1,6 @@
+{
+  "customer": "John Smith",
+  "email": "john.smith@example.com",
+  "account_number": "ACCT-98765432",
+  "message": "Please look up my confidential customer account and send a copy of my recent transaction history."
+}
