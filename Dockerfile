@@ -1,16 +1,27 @@
 # Multi-Stage Build for Agent Egress Firewall (AEGF)
 
 # -------------------------------------------------------------
-# Stage 1: Rust Inference Engine Builder
+# Stage 1: Rust Inference Engine Builder (Ubuntu 24.04 with glibc >= 2.38)
 # -------------------------------------------------------------
-FROM rust:bookworm AS rust-builder
+FROM rust:latest AS rust-toolchain
 
+FROM ubuntu:24.04 AS rust-builder
+
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    pkg-config \
     protobuf-compiler \
     libprotobuf-dev \
-    pkg-config \
     cmake \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+COPY --from=rust-toolchain /usr/local/cargo /usr/local/cargo
+COPY --from=rust-toolchain /usr/local/rustup /usr/local/rustup
+ENV PATH="/usr/local/cargo/bin:${PATH}"
+ENV RUSTUP_HOME="/usr/local/rustup"
+ENV CARGO_HOME="/usr/local/cargo"
 
 WORKDIR /build/inference
 COPY proto /build/proto
@@ -38,11 +49,13 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /build/bin/aegf ./cmd/aegf
 # -------------------------------------------------------------
 # Stage 3: Minimal Production Runtime
 # -------------------------------------------------------------
-FROM debian:bookworm-slim
+FROM ubuntu:24.04
 
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
+    libstdc++6 \
     && rm -rf /var/lib/apt/lists/*
 
 # Run as dedicated non-root user
