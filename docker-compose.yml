@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  # Private Rust Detection & Inference Engine
+  inference:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command:
+      [
+        "/app/aegf-inference",
+        "--listen",
+        "0.0.0.0:50051",
+        "--model-dir",
+        "/app/models/gliner-small",
+      ]
+    volumes:
+      - ./models:/app/models:ro
+    networks:
+      - aegf-internal
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:50051"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # Public-Facing Go Egress Security Gateway
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["serve", "--config", "/app/configs/config.docker.yaml"]
+    ports:
+      - "8080:8080"
+    environment:
+      - AEGF_SERVER_LISTEN=0.0.0.0:8080
+      - AEGF_INFERENCE_ADDRESS=inference:50051
+      - AEGF_VAULT_DB=/app/data/vault.db
+      - AEGF_AUDIT_DB=/app/data/audit.db
+      - AEGF_VAULT_KEY=${AEGF_VAULT_KEY:-}
+    volumes:
+      - ./configs:/app/configs:ro
+      - ./data:/app/data
+    networks:
+      - aegf-internal
+    depends_on:
+      - inference
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+networks:
+  aegf-internal:
+    driver: bridge
+    internal: false
