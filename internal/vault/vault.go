@@ -21,7 +21,7 @@ import (
 var (
 	ErrTokenNotFound = errors.New("vault token not found")
 	ErrInvalidKey    = errors.New("invalid master encryption key (must be 32 bytes)")
-	TokenRegex       = regexp.MustCompile(`\[AEGF:[A-Za-z0-9_]+:([A-Fa-f0-9]{12,16})\]`)
+	TokenRegex       = regexp.MustCompile(`\[AEGF:[A-Za-z0-9_-]+:([A-Fa-f0-9]{12,16})\]`)
 )
 
 type Record struct {

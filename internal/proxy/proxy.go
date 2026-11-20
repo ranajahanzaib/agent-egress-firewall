@@ -140,65 +140,75 @@ func (p *ProxyHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var inferenceDuration time.Duration
 
 	if len(extracted.Fields) > 0 {
-		scanCtx, cancel := context.WithTimeout(req.Context(), p.cfg.Inference.Timeout)
-		defer cancel()
-
-		var pbEntities []*pb.EntityDefinition
-		for _, e := range p.cfg.Entities {
-			pbEntities = append(pbEntities, &pb.EntityDefinition{
-				Name:                e.Name,
-				Description:         e.Description,
-				ConfidenceThreshold: e.ConfidenceThreshold,
-				Enabled:             e.Enabled,
-			})
-		}
-
-		var pbPatterns []*pb.PatternDefinition
-		for _, pat := range p.cfg.Patterns {
-			pbPatterns = append(pbPatterns, &pb.PatternDefinition{
-				Name:       pat.Name,
-				Category:   pat.Category,
-				Regex:      pat.Regex,
-				Confidence: pat.Confidence,
-				Enabled:    pat.Enabled,
-			})
-		}
-
-		scanReq := &pb.ScanRequest{
-			RequestId: reqID,
-			Fields:    extracted.Fields,
-			Entities:  pbEntities,
-			Patterns:  pbPatterns,
-			Options: &pb.ScanOptions{
-				EnableMl:             p.cfg.Inference.EnableML,
-				EnablePatterns:       p.cfg.Inference.EnablePatterns,
-				DefaultMinConfidence: p.cfg.Inference.MinConfidence,
-				MaxSpansPerField:     uint32(p.cfg.Inference.MaxSpansPerField),
-			},
-		}
-
-		tInf0 := time.Now()
-		scanResp, err := p.infClient.Scan(scanCtx, scanReq)
-		inferenceDuration = time.Since(tInf0)
-		if p.metrics != nil {
-			p.metrics.InferenceDurationSeconds.Observe(inferenceDuration.Seconds())
-		}
-
-		if err != nil {
-			var failType policy.FailureType = policy.FailureInferenceUnavailable
-			if errors.Is(scanCtx.Err(), context.DeadlineExceeded) {
-				failType = policy.FailureInferenceTimeout
-			}
-			failAct := p.policyEngine.EvaluateFailure(route.Policy, failType)
-			slog.Error("Inference service call failed", "route", route.ID, "error", err, "failure_action", failAct)
-
+		if p.infClient == nil {
+			failAct := p.policyEngine.EvaluateFailure(route.Policy, policy.FailureInferenceUnavailable)
+			slog.Error("Inference client not configured", "route", route.ID, "failure_action", failAct)
 			if failAct == policy.ActionBlock {
-				p.recordAudit(reqID, route.ID, route.Upstream.String(), route.Policy, "block", nil, false, time.Since(t0), inferenceDuration, err.Error())
+				p.recordAudit(reqID, route.ID, route.Upstream.String(), route.Policy, "block", nil, false, time.Since(t0), 0, "inference client unavailable")
 				p.respondError(w, http.StatusBadGateway, "security_inference_unavailable", "Outbound request blocked due to inference engine unavailability")
 				return
 			}
-		} else if scanResp != nil {
-			detections = scanResp.Detections
+		} else {
+			scanCtx, cancel := context.WithTimeout(req.Context(), p.cfg.Inference.Timeout)
+			defer cancel()
+
+			var pbEntities []*pb.EntityDefinition
+			for _, e := range p.cfg.Entities {
+				pbEntities = append(pbEntities, &pb.EntityDefinition{
+					Name:                e.Name,
+					Description:         e.Description,
+					ConfidenceThreshold: e.ConfidenceThreshold,
+					Enabled:             e.Enabled,
+				})
+			}
+
+			var pbPatterns []*pb.PatternDefinition
+			for _, pat := range p.cfg.Patterns {
+				pbPatterns = append(pbPatterns, &pb.PatternDefinition{
+					Name:       pat.Name,
+					Category:   pat.Category,
+					Regex:      pat.Regex,
+					Confidence: pat.Confidence,
+					Enabled:    pat.Enabled,
+				})
+			}
+
+			scanReq := &pb.ScanRequest{
+				RequestId: reqID,
+				Fields:    extracted.Fields,
+				Entities:  pbEntities,
+				Patterns:  pbPatterns,
+				Options: &pb.ScanOptions{
+					EnableMl:             p.cfg.Inference.EnableML,
+					EnablePatterns:       p.cfg.Inference.EnablePatterns,
+					DefaultMinConfidence: p.cfg.Inference.MinConfidence,
+					MaxSpansPerField:     uint32(p.cfg.Inference.MaxSpansPerField),
+				},
+			}
+
+			tInf0 := time.Now()
+			scanResp, err := p.infClient.Scan(scanCtx, scanReq)
+			inferenceDuration = time.Since(tInf0)
+			if p.metrics != nil {
+				p.metrics.InferenceDurationSeconds.Observe(inferenceDuration.Seconds())
+			}
+
+			if err != nil {
+				var failType policy.FailureType = policy.FailureInferenceUnavailable
+				if errors.Is(scanCtx.Err(), context.DeadlineExceeded) {
+					failType = policy.FailureInferenceTimeout
+				}
+				failAct := p.policyEngine.EvaluateFailure(route.Policy, failType)
+				slog.Error("Inference service call failed", "route", route.ID, "error", err, "failure_action", failAct)
+
+				if failAct == policy.ActionBlock {
+					p.recordAudit(reqID, route.ID, route.Upstream.String(), route.Policy, "block", nil, false, time.Since(t0), inferenceDuration, err.Error())
+					p.respondError(w, http.StatusBadGateway, "security_inference_unavailable", "Outbound request blocked due to inference engine unavailability")
+					return
+				}
+			} else if scanResp != nil {
+				detections = scanResp.Detections
+			}
 		}
 	}
 

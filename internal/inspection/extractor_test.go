@@ -189,3 +189,49 @@ func TestGzipCompression(t *testing.T) {
 		t.Errorf("expected [TOKEN] in decompressed output, got %s", string(decomp))
 	}
 }
+
+func TestGzipTextRedaction(t *testing.T) {
+	orig := "Contact user at john@example.com for assistance."
+	var buf bytes.Buffer
+	zw := gzip.NewWriter(&buf)
+	zw.Write([]byte(orig))
+	zw.Close()
+
+	req := httptest.NewRequest("POST", "/data", &buf)
+	req.Header.Set("Content-Type", "text/plain")
+	req.Header.Set("Content-Encoding", "gzip")
+
+	payload, err := ExtractFromRequest(req, 1024*1024, nil, nil)
+	if err != nil {
+		t.Fatalf("extract gzip failed: %v", err)
+	}
+	if !payload.IsGzipped {
+		t.Fatalf("expected payload to be marked as gzipped")
+	}
+
+	redactions := []FieldRedaction{
+		{
+			FieldID:     "body",
+			Start:       16,
+			End:         32, // john@example.com
+			Replacement: "[REDACTED_EMAIL]",
+		},
+	}
+
+	mutatedGzip, err := MutatePayload(payload, redactions)
+	if err != nil {
+		t.Fatalf("mutate gzip failed: %v", err)
+	}
+
+	zr, err := gzip.NewReader(bytes.NewReader(mutatedGzip))
+	if err != nil {
+		t.Fatalf("reading mutated gzip: %v", err)
+	}
+	decomp, _ := io.ReadAll(zr)
+	zr.Close()
+
+	expected := "Contact user at [REDACTED_EMAIL] for assistance."
+	if string(decomp) != expected {
+		t.Errorf("expected '%s', got '%s'", expected, string(decomp))
+	}
+}

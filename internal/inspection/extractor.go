@@ -31,6 +31,7 @@ type ExtractedPayload struct {
 	IsGzipped     bool
 	ParsedJSON    any
 	ParsedForm    url.Values
+	ParsedText    string
 }
 
 type FieldRedaction struct {
@@ -157,9 +158,10 @@ func ExtractFromRequest(req *http.Request, maxBodySize int64, inspectHeaders []s
 		}
 
 	case ContentTypeText:
+		payload.ParsedText = string(rawBytes)
 		payload.Fields = append(payload.Fields, &pb.ScanField{
 			FieldId: "body",
-			Text:    string(rawBytes),
+			Text:    payload.ParsedText,
 			Context: "text",
 		})
 
@@ -223,7 +225,11 @@ func MutatePayload(payload *ExtractedPayload, redactions []FieldRedaction) ([]by
 
 	case ContentTypeText:
 		if reds, ok := byField["body"]; ok {
-			mutated := applyTextRedactions(string(payload.OriginalBytes), reds)
+			textToRedact := payload.ParsedText
+			if textToRedact == "" && len(payload.OriginalBytes) > 0 && !payload.IsGzipped {
+				textToRedact = string(payload.OriginalBytes)
+			}
+			mutated := applyTextRedactions(textToRedact, reds)
 			if payload.IsGzipped {
 				return compressGzip([]byte(mutated))
 			}
@@ -263,9 +269,11 @@ func applyTextRedactions(text string, redactions []FieldRedaction) string {
 			continue
 		}
 		replRunes := []rune(r.Replacement)
-		prefix := runes[:r.Start]
-		suffix := runes[r.End:]
-		runes = append(prefix, append(replRunes, suffix...)...)
+		newRunes := make([]rune, 0, len(runes)+len(replRunes)-(r.End-r.Start))
+		newRunes = append(newRunes, runes[:r.Start]...)
+		newRunes = append(newRunes, replRunes...)
+		newRunes = append(newRunes, runes[r.End:]...)
+		runes = newRunes
 	}
 	return string(runes)
 }

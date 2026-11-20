@@ -88,6 +88,32 @@ func TestVaultEncryptionAndRestoration(t *testing.T) {
 	if restored != expectedJSON {
 		t.Errorf("expected restored '%s', got '%s'", expectedJSON, restored)
 	}
+
+	// Verify hyphenated category tokens
+	tokenHyphen, _ := GenerateToken("INTERNAL-BUILD-ID")
+	if err := v.Store(ctx, []StoreItem{
+		{
+			ID:          "rec-3",
+			RequestID:   "req-101",
+			Token:       tokenHyphen,
+			Category:    "INTERNAL-BUILD-ID",
+			Plaintext:   "BUILD-998877",
+			FieldPath:   "/build/id",
+			Destination: "https://api.openai.com",
+			PolicyID:    "strict-ai",
+			TTL:         time.Hour,
+		},
+	}); err != nil {
+		t.Fatalf("Store hyphen token failed: %v", err)
+	}
+
+	restoredHyphen, err := v.RestoreText(ctx, "Build: "+tokenHyphen)
+	if err != nil {
+		t.Fatalf("RestoreText hyphen token failed: %v", err)
+	}
+	if restoredHyphen != "Build: BUILD-998877" {
+		t.Errorf("expected 'Build: BUILD-998877', got '%s'", restoredHyphen)
+	}
 }
 
 func TestVaultTamperDetection(t *testing.T) {
