@@ -10,8 +10,10 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -93,7 +95,7 @@ func main() {
 }
 
 func runVersion() {
-	fmt.Printf("aegf version %s (Go runtime %s)\n", Version, "go1.27.1")
+	fmt.Printf("aegf version %s (Go runtime %s)\n", Version, runtime.Version())
 }
 
 func runServe(args []string) {
@@ -190,7 +192,7 @@ func runDoctor(args []string) {
 	}
 
 	// 2. Go runtime
-	fmt.Printf("[2/8] Gateway Runtime: OK (Go %s)\n", "1.27")
+	fmt.Printf("[2/8] Gateway Runtime: OK (Go %s)\n", strings.TrimPrefix(runtime.Version(), "go"))
 
 	// 3. SQLite Database paths
 	fmt.Printf("[3/8] SQLite Storage: ")
@@ -240,13 +242,15 @@ func runDoctor(args []string) {
 
 	infClient, err := inspection.NewClient(infAddr)
 	if err != nil {
-		fmt.Printf("OFFLINE (%s: %v)\n", infAddr, err)
+		fmt.Printf("OFFLINE (failed to initialize client: %v)\n", err)
 	} else {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 		status, err := infClient.GetModelStatus(ctx)
 		if err != nil {
-			fmt.Printf("CONNECTED, but model status error: %v\n", err)
+			fmt.Printf("OFFLINE (could not reach %s: %v)\n", infAddr, err)
+		} else if !status.ModelLoaded {
+			fmt.Printf("DEGRADED (connected to %s, model not loaded, running in pattern-only mode)\n", infAddr)
 		} else {
 			fmt.Printf("OK (model_loaded=%v, model=%s, device=%s)\n", status.ModelLoaded, status.ModelName, status.Device)
 		}
@@ -725,8 +729,18 @@ func runModels(args []string) {
 
 	case "fetch":
 		fmt.Println("Fetching GLiNER ONNX model from Hugging Face...")
-		cmd := "python3 scripts/download_model.py"
-		fmt.Printf("Please run: %s\n", cmd)
+		scriptPath := "scripts/download_model.py"
+		if _, err := os.Stat(scriptPath); err == nil {
+			cmd := exec.Command("python3", scriptPath)
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			if err := cmd.Run(); err != nil {
+				fmt.Fprintf(os.Stderr, "Download script failed: %v\nPlease run manually: python3 %s\n", err, scriptPath)
+				os.Exit(1)
+			}
+		} else {
+			fmt.Printf("Script not found at %s. Please ensure scripts/download_model.py exists.\n", scriptPath)
+		}
 
 	case "verify":
 		fmt.Printf("Verifying model files at %s...\n", modelDir)

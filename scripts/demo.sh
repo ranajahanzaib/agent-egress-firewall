@@ -17,15 +17,15 @@ if [ ! -f bin/aegf-inference ]; then
   cd inference && cargo build --release && cp target/release/aegf-inference ../bin/ && cd ..
 fi
 
-echo "[+] 2. Checking preflight with aegf doctor..."
-./bin/aegf doctor --config configs/config.example.yaml
-
-echo "[+] 3. Starting Rust Inference Engine (GLiNER ONNX + Patterns)..."
+echo "[+] 2. Starting Rust Inference Engine (GLiNER ONNX + Patterns)..."
 ./bin/aegf-inference --listen 127.0.0.1:50051 --model-dir models/gliner-small &
 INF_PID=$!
 trap "kill $INF_PID 2>/dev/null || true; kill \${GATEWAY_PID:-0} 2>/dev/null || true" EXIT
 
 sleep 2
+
+echo "[+] 3. Running preflight diagnostics with aegf doctor..."
+./bin/aegf doctor --config configs/config.example.yaml
 
 echo "[+] 4. Starting Gateway Proxy on 127.0.0.1:8080..."
 ./bin/aegf serve --config configs/config.example.yaml &
